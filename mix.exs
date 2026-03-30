@@ -12,8 +12,8 @@ defmodule Styler.MixProject do
   use Mix.Project
 
   # Don't forget to bump the README when doing non-patch version changes
-  @version "1.11.0"
-  @url "https://github.com/adobe/elixir-styler"
+  @version "1.11.1"
+  @url "https://github.com/kokjinsam/elixir-styler"
 
   def project do
     [
@@ -41,13 +41,14 @@ defmodule Styler.MixProject do
 
   defp deps do
     [
+      {:credo, "~> 1.7", runtime: false, only: [:dev, :test]},
       {:ex_doc, "~> 0.31", runtime: false, only: :dev}
     ]
   end
 
   defp package do
     [
-      maintainers: ["Matt Enlow", "Greg Mefford"],
+      maintainers: ["Kok-Jin Sam"],
       licenses: ["Apache-2.0"],
       links: %{"GitHub" => @url, "Changelog" => "#{@url}/blob/main/CHANGELOG.md"}
     ]

@@ -61,6 +61,30 @@ And that's it! Now when you run `mix format` you'll also get the benefits of Sty
 
 **Speed**: Expect the first run to take some time as `Styler` rewrites violations of styles and bottlenecks on disk I/O. Subsequent formats won't take noticeably more time.
 
+### Credo Configuration
+
+Styler ships with a shared Credo configuration that has Styler-overlapping rules already disabled. To use it, create a `.credo.exs` in your project:
+
+```elixir
+# .credo.exs
+Styler.Credo.config()
+```
+
+To override specific checks or settings:
+
+```elixir
+# .credo.exs
+Styler.Credo.config(
+  strict: false,
+  checks: [
+    {Credo.Check.Readability.MaxLineLength, [max_length: 100]},
+    {Credo.Check.Design.TagTODO, false}
+  ]
+)
+```
+
+Check overrides are merged by module — your value replaces the default for that check. Top-level options (`:strict`, `:parse_timeout`, `:color`, etc.) override directly.
+
 ### Configuration
 
 Styler can be configured in your `.formatter.exs` file
