@@ -1,8 +1,8 @@
 defmodule Styler.Check.Design.NoDatabaseConstraints do
   @moduledoc false
   use Credo.Check,
-    category: :design,
     base_priority: :higher,
+    category: :design,
     explanations: [
       check: """
       Avoid setting business-logic column constraints in Ecto migrations.

@@ -102,13 +102,23 @@ defmodule Styler.Credo do
       {Credo.Check.Consistency.TabsOrSpaces, []},
       {Credo.Check.Consistency.UnusedVariableNames, []},
 
+      # Styler Design Checks
+      {Styler.Check.Design.NoDatabaseConstraints, []},
+
       # Design Checks
       {Credo.Check.Design.AliasUsage, false},
       {Credo.Check.Design.DuplicatedCode, []},
       {Credo.Check.Design.SkipTestWithoutComment, []},
-      {Styler.Check.Design.NoDatabaseConstraints, []},
       {Credo.Check.Design.TagFIXME, []},
       {Credo.Check.Design.TagTODO, [exit_status: 2]},
+
+      # Styler Readability Checks
+      {Styler.Check.Readability.BoilerplateDocParams, []},
+      {Styler.Check.Readability.DocFalseOnPublicFunction, []},
+      {Styler.Check.Readability.NarratorComment, []},
+      {Styler.Check.Readability.NarratorDoc, []},
+      {Styler.Check.Readability.ObviousComment, []},
+      {Styler.Check.Readability.StepComment, []},
 
       # Readability Checks
       {Credo.Check.Readability.AliasAs, []},
@@ -147,6 +157,18 @@ defmodule Styler.Credo do
       {Credo.Check.Readability.WithCustomTaggedTuple, []},
       {Credo.Check.Readability.WithSingleClause, false},
 
+      # Styler Refactor Checks
+      {Styler.Check.Refactor.FilterNil, []},
+      {Styler.Check.Refactor.IdentityMap, []},
+      {Styler.Check.Refactor.IdentityPassthrough, []},
+      {Styler.Check.Refactor.ReduceAsMap, []},
+      {Styler.Check.Refactor.RejectNil, []},
+      {Styler.Check.Refactor.SortThenReverse, []},
+      {Styler.Check.Refactor.StringConcatInReduce, []},
+      {Styler.Check.Refactor.TryRescueWithSafeAlternative, []},
+      {Styler.Check.Refactor.WithIdentityDo, []},
+      {Styler.Check.Refactor.WithIdentityElse, []},
+
       # Refactoring Opportunities
       {Credo.Check.Refactor.ABCSize, false},
       {Credo.Check.Refactor.AppendSingleItem, []},
@@ -181,6 +203,13 @@ defmodule Styler.Credo do
       {Credo.Check.Refactor.UtcNowTruncate, []},
       {Credo.Check.Refactor.VariableRebinding, []},
       {Credo.Check.Refactor.WithClauses, false},
+
+      # Styler Warning Checks
+      {Styler.Check.Warning.BlanketRescue, []},
+      {Styler.Check.Warning.GenserverAsKvStore, []},
+      {Styler.Check.Warning.QueryInEnumMap, []},
+      {Styler.Check.Warning.RepoAllThenFilter, []},
+      {Styler.Check.Warning.RescueWithoutReraise, []},
 
       # Warnings
       {Credo.Check.Warning.ApplicationConfigInModuleAttribute, []},
