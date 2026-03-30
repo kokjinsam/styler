@@ -1,14 +1,8 @@
-[![Hex.pm](https://img.shields.io/hexpm/v/styler)](https://hex.pm/packages/styler)
-[![Hexdocs.pm](https://img.shields.io/badge/docs-hexdocs.pm-purple)](https://hexdocs.pm/styler)
-[![Github.com](https://github.com/adobe/elixir-styler/actions/workflows/ci.yml/badge.svg)](https://github.com/adobe/elixir-styler/actions)
-
 # Styler
 
 Styler is an Elixir formatter plugin that goes beyond formatting by rewriting your code to optimize for consistency, readability, and performance.
 
 ## Features
-
-[Styler's full feature documentation can be found on Hexdocs.](https://hexdocs.pm/styler/styles.html)
 
 Styler fixes a plethora of Elixir style and optimization issues automatically as part of mix format.
 
@@ -24,6 +18,7 @@ The fastest way to see what all it can do you for you is to just try it out in y
 ### Refactoring Mix Tasks
 
 Styler also includes two experimental refactoring tasks:
+
 - `mix styler.remove_unused`: deletes unused `import|alias|require` nodes that generate compiler warnings
 - `mix styler.inline_attrs`: inlines module attributes that have a literal value and are only referenced once, removing unnecessary indirection
 
@@ -31,7 +26,7 @@ Styler also includes two experimental refactoring tasks:
 
 > I'm just excited to be on a team that uses Styler and moves on
 >
->\- [Amos King](https://github.com/adkron)
+> \- [Amos King](https://github.com/adkron)
 
 Styler was designed for a large team working in a single codebase (140+ contributors). It helps remove fiddly code review comments and linter CI slowdowns, helping our team get things done faster. Teams in similar situations might appreciate Styler.
 
@@ -80,18 +75,14 @@ Styler can be configured in your `.formatter.exs` file
 ]
 ```
 
-* `alias_lifting_exclude`: a list of module names to _not_ lift. See the [Module Directive documentation](docs/module_directives.md#alias-lifting) for more.
-* `minimum_supported_elixir_version`: intended for library authors; overrides the Elixir version Styler relies on with respect to some deprecation rewrites. See [Deprecations documentation](docs/deprecations.md#configuration) for more.
+- `alias_lifting_exclude`: a list of module names to _not_ lift. See the [Module Directive documentation](docs/module_directives.md#alias-lifting) for more.
+- `minimum_supported_elixir_version`: intended for library authors; overrides the Elixir version Styler relies on with respect to some deprecation rewrites. See [Deprecations documentation](docs/deprecations.md#configuration) for more.
 
 #### No Credo-Style Enable/Disable
 
-Styler [will not add configuration](https://github.com/adobe/elixir-styler/pull/127#issuecomment-1912242143) for ad-hoc enabling/disabling of rewrites. Sorry!
+Styler [will not add configuration](https://github.com/adobe/elixir-styler/pull/127#issuecomment-1912242143) for ad-hoc enabling/disabling of rewrites.
 
-However, Smartrent has a fork of Styler named [Quokka](https://github.com/smartrent/quokka) that allows for finegrained control of Styler. Maybe it's what you're looking for. If not, you can always fork it or Styler as a starting point for your own tool!
-
-Ultimately Styler is @adobe's internal tool that we're happy to share with the world. We're delighted if you like it as is, and just as excited if it's a starting point for you to make something even better for yourself.
-
-## WARNING: Styler can change the behaviour of your program
+## WARNING: Styler can change the behavior of your program
 
 While Styler endeavors to never purposefully create bugs, some of its rewrites can introduce them in obscure cases.
 
@@ -123,6 +114,58 @@ Other ways Styler _could_ introduce runtime bugs:
 - [`with` statement rewrites](https://github.com/adobe/elixir-styler/issues/186)
 - [config file sorting](https://hexdocs.pm/styler/mix_configs.html#this-can-break-your-program)
 - and likely other ways. stay safe out there!
+
+## Adding New Rules: Decision Framework
+
+When deciding where to implement a new rule, use the following guidelines:
+
+### Styler Style Module
+
+Use when the rule is a **deterministic AST-to-AST rewrite on a single file**.
+
+- Runs automatically on every `mix format` — zero friction
+- Must be safe enough to run silently without human review
+- Only has access to the current file's AST and comments — no cross-file or compiler info
+
+Good for: sorting lists, rewriting deprecated patterns, enforcing structural conventions (e.g., module layout order).
+
+### Styler Mix Task
+
+Use when the transformation **needs information the formatter can't provide**, or **isn't safe to run automatically**.
+
+- Needs compiler output (e.g., `remove_unused` parses compiler warnings)
+- Needs cross-file analysis
+- Known to produce imperfect results that require human review
+- One-shot refactoring operations (run once, not on every format)
+
+Good for: bulk refactors, removals based on compiler analysis, migrations.
+
+### Credo Rule
+
+Use when you want to **warn rather than fix**, or the rule **requires semantic judgment**.
+
+- Great for things that can't be auto-fixed (complexity thresholds, naming conventions, design smells)
+- Supports configurable severity, priority, and per-file/pattern exclusions
+- Has a well-documented plugin system (`Credo.Check` behavior) — designed for custom rules
+- Runs in CI as a separate pass
+
+Good for: "flag this for a human to decide" rules — max function length, required documentation, naming patterns, TODO tracking.
+
+### Other Options
+
+- **Custom Mix formatter plugin**: write your own `Mix.Tasks.Format` behavior plugin independent of Styler for format-time rewrites that don't fit Styler's scope.
+- **Compiler tracers**: use `Module.register_attribute` and compiler tracers to enforce cross-module rules at compile time.
+- **`mix compile --warnings-as-errors` / Dialyzer**: for type-level or semantic correctness rules.
+
+### Quick Reference
+
+| Question                                       | Tool                   |
+| ---------------------------------------------- | ---------------------- |
+| Can it be auto-fixed from a single file's AST? | Styler style module    |
+| Does it need compiler or cross-file info?      | Mix task               |
+| Is the fix imperfect or needs human review?    | Mix task or Credo rule |
+| Should it warn, not fix?                       | Credo rule             |
+| Is it a type or contract check?                | Dialyzer / compiler    |
 
 ## Thanks & Inspiration
 
