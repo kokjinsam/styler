@@ -41,7 +41,7 @@ defmodule Styler.MixProject do
 
   defp deps do
     [
-      {:credo, "~> 1.7", runtime: false, only: [:dev, :test]},
+      {:credo, "~> 1.7", runtime: false},
       {:ex_doc, "~> 0.31", runtime: false, only: :dev}
     ]
   end

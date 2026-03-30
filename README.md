@@ -63,7 +63,9 @@ And that's it! Now when you run `mix format` you'll also get the benefits of Sty
 
 ### Credo Configuration
 
-Styler ships with a shared Credo configuration that has Styler-overlapping rules already disabled. To use it, create a `.credo.exs` in your project:
+Styler ships with a shared Credo configuration that has Styler-overlapping rules already disabled. You should still
+declare `:credo` in your own project's deps for CI/editor integration. To use the shared config, create a `.credo.exs`
+in your project:
 
 ```elixir
 # .credo.exs
