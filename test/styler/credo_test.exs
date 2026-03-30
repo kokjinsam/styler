@@ -1,6 +1,10 @@
 defmodule Styler.CredoTest do
   use ExUnit.Case, async: true
 
+  alias Credo.Check.Readability.MaxLineLength
+  alias Credo.Check.Readability.Specs
+  alias Styler.Check.Design.NoDatabaseConstraints
+
   @styler_replaced_checks [
     Credo.Check.Consistency.MultiAliasImportRequireUse,
     Credo.Check.Consistency.ParameterPatternMatching,
@@ -51,24 +55,33 @@ defmodule Styler.CredoTest do
                "Expected #{inspect(module)} to be disabled"
       end
     end
+
+    test "enables the no database constraints check by default" do
+      %{configs: [%{checks: checks}]} = Styler.Credo.config()
+
+      assert {NoDatabaseConstraints, []} =
+               Enum.find(checks, fn {module, _opts} ->
+                 module == NoDatabaseConstraints
+               end)
+    end
   end
 
   describe "config/1" do
     test "overrides a default check" do
       %{configs: [%{checks: checks}]} =
-        Styler.Credo.config(checks: [{Credo.Check.Readability.MaxLineLength, [max_length: 100]}])
+        Styler.Credo.config(checks: [{MaxLineLength, [max_length: 100]}])
 
-      assert {Credo.Check.Readability.MaxLineLength, [max_length: 100]} =
-               Enum.find(checks, fn {m, _} -> m == Credo.Check.Readability.MaxLineLength end)
+      assert {MaxLineLength, [max_length: 100]} =
+               Enum.find(checks, fn {m, _} -> m == MaxLineLength end)
     end
 
     test "adds checks not in the default list" do
       %{configs: [%{checks: checks}]} =
-        Styler.Credo.config(checks: [{Credo.Check.Readability.Specs, []}])
+        Styler.Credo.config(checks: [{Specs, []}])
 
       # The default has Specs set to false, so override should win
-      assert {Credo.Check.Readability.Specs, []} =
-               Enum.find(checks, fn {m, _} -> m == Credo.Check.Readability.Specs end)
+      assert {Specs, []} =
+               Enum.find(checks, fn {m, _} -> m == Specs end)
     end
 
     test "overrides top-level config" do

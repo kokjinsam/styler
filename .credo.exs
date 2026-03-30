@@ -40,6 +40,7 @@
         {Credo.Check.Design.AliasUsage, false},
         {Credo.Check.Design.DuplicatedCode, []},
         {Credo.Check.Design.SkipTestWithoutComment, []},
+        {Styler.Check.Design.NoDatabaseConstraints, []},
         {Credo.Check.Design.TagFIXME, []},
         {Credo.Check.Design.TagTODO, [exit_status: 2]},
 

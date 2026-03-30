@@ -1,0 +1,108 @@
+defmodule Styler.Check.Design.NoDatabaseConstraints do
+  @moduledoc false
+  use Credo.Check,
+    category: :design,
+    base_priority: :higher,
+    explanations: [
+      check: """
+      Avoid setting business-logic column constraints in Ecto migrations.
+
+      Application-level validations should enforce nullability, defaults, and sizing
+      rules instead of pushing those concerns into `add/3` and `modify/3`.
+      """
+    ]
+
+  @forbidden_options ~w(null default size precision scale)a
+  @targeted_functions %{create: MapSet.new([:add]), alter: MapSet.new([:add, :modify])}
+
+  @doc false
+  @impl Credo.Check
+  def run(%SourceFile{} = source_file, params) do
+    if migration_file?(source_file) do
+      issue_meta = IssueMeta.for(source_file, params)
+
+      source_file
+      |> Credo.Code.prewalk(&walk/2, {issue_meta, []})
+      |> elem(1)
+    else
+      []
+    end
+  end
+
+  defp walk({operation, _meta, [table_call, block_options]} = ast, {issue_meta, issues})
+       when operation in [:create, :alter] and is_list(block_options) do
+    with true <- table_call?(table_call),
+         body when not is_nil(body) <- Keyword.get(block_options, :do),
+         targeted_functions when not is_nil(targeted_functions) <- @targeted_functions[operation] do
+      {ast, {issue_meta, issues ++ issues_in_block(body, targeted_functions, issue_meta)}}
+    else
+      _ -> {ast, {issue_meta, issues}}
+    end
+  end
+
+  defp walk(ast, acc), do: {ast, acc}
+
+  defp issues_in_block(block_ast, targeted_functions, issue_meta) do
+    block_ast
+    |> Credo.Code.prewalk(&find_issues/2, {targeted_functions, issue_meta, []})
+    |> elem(2)
+  end
+
+  defp find_issues({function_name, meta, args} = ast, {targeted_functions, issue_meta, issues}) when is_list(args) do
+    if MapSet.member?(targeted_functions, function_name) do
+      case forbidden_options(args) do
+        [] ->
+          {ast, {targeted_functions, issue_meta, issues}}
+
+        options ->
+          issue = issue_for(issue_meta, function_name, meta, options)
+          {ast, {targeted_functions, issue_meta, issues ++ [issue]}}
+      end
+    else
+      {ast, {targeted_functions, issue_meta, issues}}
+    end
+  end
+
+  defp find_issues(ast, acc), do: {ast, acc}
+
+  defp forbidden_options(args) do
+    with [_name, _type | _rest] <- args,
+         opts when is_list(opts) <- List.last(args),
+         true <- Keyword.keyword?(opts),
+         false <- primary_key_column?(opts) do
+      opts
+      |> Keyword.keys()
+      |> Enum.filter(&(&1 in @forbidden_options))
+      |> Enum.uniq()
+    else
+      _ -> []
+    end
+  end
+
+  defp primary_key_column?(opts), do: Keyword.get(opts, :primary_key) == true
+
+  defp issue_for(issue_meta, function_name, meta, options) do
+    option_list = Enum.map_join(options, ", ", &"`#{&1}`")
+
+    format_issue(
+      issue_meta,
+      message: "Column option(s) #{option_list} should not be set in migrations. Enforce at the application layer.",
+      trigger: Atom.to_string(function_name),
+      line_no: meta[:line],
+      column: meta[:column]
+    )
+  end
+
+  defp migration_file?(source_file) do
+    Credo.Code.prewalk(source_file, &find_migration_use/2, false)
+  end
+
+  defp find_migration_use({:use, _meta, [{:__aliases__, _, [:Ecto, :Migration]} | _]} = ast, _found_migration?) do
+    {ast, true}
+  end
+
+  defp find_migration_use(ast, found_migration?), do: {ast, found_migration?}
+
+  defp table_call?({:table, _, _}), do: true
+  defp table_call?(_), do: false
+end

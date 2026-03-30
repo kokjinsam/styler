@@ -39,10 +39,11 @@ defmodule Styler.Credo do
   def config(overrides \\ []) do
     {check_overrides, config_overrides} = Keyword.pop(overrides, :checks, [])
 
-    override_map = Map.new(check_overrides, fn
-      {module, opts} -> {module, {module, opts}}
-      module when is_atom(module) -> {module, {module, []}}
-    end)
+    override_map =
+      Map.new(check_overrides, fn
+        {module, opts} -> {module, {module, opts}}
+        module when is_atom(module) -> {module, {module, []}}
+      end)
 
     merged_checks =
       Enum.map(default_checks(), fn {module, _opts} = check ->
@@ -105,6 +106,7 @@ defmodule Styler.Credo do
       {Credo.Check.Design.AliasUsage, false},
       {Credo.Check.Design.DuplicatedCode, []},
       {Credo.Check.Design.SkipTestWithoutComment, []},
+      {Styler.Check.Design.NoDatabaseConstraints, []},
       {Credo.Check.Design.TagFIXME, []},
       {Credo.Check.Design.TagTODO, [exit_status: 2]},
 
